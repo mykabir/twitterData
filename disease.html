@@ -240,7 +240,7 @@
   var color1 = d3.hsl("#cdf6d2");
   var brush;
   var sizeScale = d3.scale.linear()
-          .range([5, 80]);
+          .range([20, 80]);
   $(document).ready(function () {
     var termsData;
     //Create a new instance of the word cloud visualisation.
@@ -695,7 +695,7 @@
 
     //Draw the word cloud
     function draw(words) {
-
+console.log(words);
       var cloud = svg.selectAll("g text")
               .data(words, function (d) {
                 return d.text;
@@ -704,14 +704,11 @@
       //Entering words
       cloud.enter().append("text")
               .style("font-size", function (d) {
-                return d.size + "px";
+                return (d.size) + "px";
               })
               .style("font-family", "Impact")
               .style("fill", function (d, i) {
-                if (catcolors[d.text])
-                  return catcolors[d.text]
-                else
-                  return fill(i);
+                 return streamColor(19-i);
               })
               .style("cursor", "pointer")
               .style("pointer-events", "all")
@@ -822,7 +819,7 @@
       cloud.transition()
               .duration(100)
               .style("font-size", function (d) {
-                return d.size + "px";
+                return (d.size) + "px";
               })
               .attr("transform", function (d) {
                 return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
