@@ -30,105 +30,6 @@
 <h1>Text Visualization</h1>
 <div id="visualizations">
   <div id="options">
-    <div id="topOptions">
-      <div id="sourceSelection">
-        <h5>Source:</h5>
-        &ensp;<input type="radio" name="Source" id="wiki" checked> Wikinews<br>
-        &ensp;<input type="radio" name="Source" id="HP"> Huffington Post<br>
-      </div>
-      <div id="intervalSelection">
-        <h5>Time Period:</h5>
-        <table>
-          <tr>
-            <td>
-              &ensp;From: &ensp;
-            </td>
-            <td>
-              <select id="fromMonth" placeholder="From Month">
-                <option>01</option>
-                <option>02</option>
-                <option>03</option>
-                <option>04</option>
-                <option>05</option>
-                <option>06</option>
-                <option>07</option>
-                <option>08</option>
-                <option>09</option>
-                <option>10</option>
-                <option>11</option>
-                <option>12</option>
-              </select>
-            </td>
-            <td>
-              <select id="fromYear" placeholder="From Year">
-                <option>2004</option>
-                <option>2005</option>
-                <option>2006</option>
-                <option>2007</option>
-                <option>2008</option>
-                <option>2009</option>
-                <option>2010</option>
-                <option>2011</option>
-                <option>2012</option>
-                <option>2013</option>
-                <option>2014</option>
-                <option>2015</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              &ensp;To: &ensp;
-            </td>
-            <td>
-              <select id="toMonth" placeholder="To Month">
-                <option>01</option>
-                <option>02</option>
-                <option>03</option>
-                <option>04</option>
-                <option>05</option>
-                <option>06</option>
-                <option>07</option>
-                <option>08</option>
-                <option>09</option>
-                <option>10</option>
-                <option>11</option>
-                <option selected>12</option>
-              </select>
-            </td>
-            <td>
-              <select id="toYear" placeholder="From Year">
-                <option>2004</option>
-                <option>2005</option>
-                <option>2006</option>
-                <option>2007</option>
-                <option>2008</option>
-                <option>2009</option>
-                <option>2010</option>
-                <option>2011</option>
-                <option>2012</option>
-                <option>2013</option>
-                <option>2014</option>
-                <option selected>2015</option>
-              </select>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div id="chartSelection">
-        <h5>Chart Type:</h5>
-        <input type="radio" name="chartType" id="overview" checked> Overview<br>
-        <input type="radio" name="chartType" id="relationships"> Relationships for term:
-        <input type="text" id="relationshipTerm" disabled><br>
-      </div>
-      <div id="numberTermsSelection">
-        <h5 style="display: inline">Number of Terms Displayed: </h5>
-        &ensp;<input type="text" style="width: 40px" id="texttermscount" placeholder="count" value="50">
-      </div>
-      <div id="updateButtonContainer">
-        <button onclick="updateData()">Go</button>
-      </div>
-    </div>
     <div id="bottomOptions">
 
     </div>
@@ -148,20 +49,6 @@
 <script>
   var source = "wn";
   var topTermsCount = 50;
-  function setSource(s) {
-    if (s == "wiki") {
-      source = "wn";
-      allTermsArray = wnallTermsArray;
-      allTermsMap = wnallTermsMap;
-    }
-    else {
-      source = "hp"
-      allTermsArray = hpallTermsArray;
-      allTermsMap = hpallTermsMap;
-
-    }
-
-  }
 
   // stream graph variables declared globally to keep the scope for update
   var stack;
@@ -240,7 +127,7 @@
   var color1 = d3.hsl("#cdf6d2");
   var brush;
   var sizeScale = d3.scale.linear()
-          .range([20, 80]);
+          .range([5, 80]);
   $(document).ready(function () {
     var termsData;
     //Create a new instance of the word cloud visualisation.
@@ -433,6 +320,7 @@
     for (var term in personcolor) {
       catcolors[term] = personcolor[term];
     }
+
      console.log(topTerms);
      // debugger;
     return topTerms;
@@ -695,7 +583,10 @@
 
     //Draw the word cloud
     function draw(words) {
-console.log(words);
+      console.log(words);
+       words.sort(function(a, b) {
+      return a.frequency -b.frequency;
+    });
       var cloud = svg.selectAll("g text")
               .data(words, function (d) {
                 return d.text;
@@ -704,11 +595,11 @@ console.log(words);
       //Entering words
       cloud.enter().append("text")
               .style("font-size", function (d) {
-                return (d.size) + "px";
+                return d.size + "px";
               })
               .style("font-family", "Impact")
               .style("fill", function (d, i) {
-                 return streamColor(19-i);
+                 return streamColor(i);
               })
               .style("cursor", "pointer")
               .style("pointer-events", "all")
@@ -819,7 +710,7 @@ console.log(words);
       cloud.transition()
               .duration(100)
               .style("font-size", function (d) {
-                return (d.size) + "px";
+                return d.size + "px";
               })
               .attr("transform", function (d) {
                 return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
@@ -1020,6 +911,9 @@ console.log(words);
             });
 
     // TODO: Sort topTerms by category.
+    topTerms.sort(function(a, b) {
+      return parseFloat(a.freq) - parseFloat(b.freq);
+    });
 
     layers = stack(topTerms);
 
@@ -1318,431 +1212,8 @@ console.log(words);
       return fill(i);
   }
 
-  //
-  //Relations
 
-  function getRelatedWords() {
-    var rawdata;
-    var originwords
-    if (source == "wn") {
-      if (wnrawdata.length > 0) {
-        rawdata = wnrawdata;
-        originwords = new Object();
-        topTerms.forEach(function (term) {
-          originwords[term.term] = 1;
 
-        })
-        plotRelations_Process(rawdata, originwords);
 
-      }
-      else {
-        d3.tsv("data/americablog.tsv", function (data) {
-          rawdata = data;
-          wnrawdata = data;
-          originwords = new Object();
-          topTerms.forEach(function (term) {
-            originwords[term.term] = 1;
-
-          })
-          plotRelations_Process(rawdata, originwords);
-
-
-        })
-      }
-    }
-
-    if (source == "hp") {
-      if (hprawdata.length > 0) {
-        rawdata = hprawdata;
-        originwords = new Object();
-        topTerms.forEach(function (term) {
-          originwords[term.term] = 1;
-
-        })
-        plotRelations_Process(rawdata, originwords);
-
-      }
-      else {
-        d3.tsv("data/huffington.tsv", function (data) {
-          rawdata = data;
-          hprawdata = data;
-          originwords = new Object();
-          topTerms.forEach(function (term) {
-            originwords[term.term] = 1;
-
-          })
-          plotRelations_Process(rawdata, originwords);
-
-
-        })
-      }
-    }
-
-
-    // return relatedwordsArray;
-
-  }
-
-  function plotRelations_Process(rawdata, originwords) {
-    var relatedwordsArray = [];
-    var relatedWords = new Object()
-    topTerms.forEach(function (term) {
-      var blogs = term.blogs;
-      blogs.forEach(function (blognumber) {
-        var words = rawdata[blognumber - 1].person.split("|")
-
-        words.forEach(function (currterm) {
-          if (currterm != term.term) {
-            if (originwords[currterm]) {
-              if (!relatedWords[term.term]) {
-                relatedWords[term.term] = new Object();
-              }
-              if (relatedWords[term.term][currterm])
-                relatedWords[term.term][currterm] = relatedWords[term.term][currterm] + 1;
-              else {
-                relatedWords[term.term][currterm] = 1;
-              }
-
-            }
-          }
-        })
-
-        words = rawdata[blognumber - 1].location.split("|")
-
-        words.forEach(function (currterm) {
-          if (currterm != term.term) {
-            if (originwords[currterm]) {
-              if (!relatedWords[term.term]) {
-                relatedWords[term.term] = new Object();
-              }
-              if (relatedWords[term.term][currterm])
-                relatedWords[term.term][currterm] = relatedWords[term.term][currterm] + 1;
-              else {
-                relatedWords[term.term][currterm] = 1;
-              }
-
-            }
-          }
-        })
-
-        words = rawdata[blognumber - 1].organization.split("|")
-        words.forEach(function (currterm) {
-          if (currterm != term.term) {
-            if (originwords[currterm]) {
-              if (!relatedWords[term.term]) {
-                relatedWords[term.term] = new Object();
-              }
-              if (relatedWords[term.term][currterm])
-                relatedWords[term.term][currterm] = relatedWords[term.term][currterm] + 1;
-              else {
-                relatedWords[term.term][currterm] = 1;
-              }
-
-            }
-          }
-        })
-
-        words = rawdata[blognumber - 1].miscellaneous.split("|")
-
-        words.forEach(function (currterm) {
-          if (currterm != term.term) {
-            if (originwords[currterm]) {
-              if (!relatedWords[term.term]) {
-                relatedWords[term.term] = new Object();
-              }
-              if (relatedWords[term.term][currterm])
-                relatedWords[term.term][currterm] = relatedWords[term.term][currterm] + 1;
-              else {
-                relatedWords[term.term][currterm] = 1;
-              }
-
-            }
-          }
-        })
-      })
-
-    })
-
-    for (var firstterm in relatedWords) {
-      for (var secondterm in relatedWords[firstterm]) {
-        var obj = new Object();
-        obj.firstterm = firstterm;
-        obj.secondterm = secondterm;
-        obj.frequency = relatedWords[firstterm][secondterm];
-        relatedwordsArray.push(obj)
-      }
-    }
-    drawChords(relatedwordsArray);
-
-  }
-
-
-  var chordsvg;
-  var container;
-  var arc
-  var chordpath;
-  function plotRelations() {
-    var width = $('#relationshipChart').width();
-    var height = $('#relationshipChart').height();
-    innerRadius = ((Math.min(height, width)) / 2) * 3 / 5;
-    chordsvg.attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", "0 0 " + width + " " + height);
-    container.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-
-
-    arc = d3.svg.arc()
-            .innerRadius(innerRadius)
-            .outerRadius(innerRadius + 20);
-    chordpath = d3.svg.chord()
-            .radius(innerRadius);
-
-    getRelatedWords();
-    // IMPORT THE CSV DATA
-    // d3.csv('data/test.csv', function (err, data) {
-
-
-    // });
-  }
-
-  var size = [$('#relationshipChart').width(), $('#relationshipChart').height()]; // SVG SIZE WIDTH, HEIGHT
-  var marg = [0, 0, 0, 0]; // TOP, RIGHT, BOTTOM, LEFT
-  var dims = []; // USABLE DIMENSIONS
-  dims[0] = size[0] - marg[1] - marg[3]; // WIDTH
-  dims[1] = size[1] - marg[0] - marg[2]; // HEIGHT
-
-  var colors = d3.scale.ordinal()
-          .range(['#9C6744', '#C9BEB9', '#CFA07E', '#C4BAA1', '#C2B6BF', '#121212', '#8FB5AA', '#85889E', '#9C7989', '#91919C', '#242B27', '#212429', '#99677B', '#36352B', '#33332F', '#2B2B2E', '#2E1F13', '#2B242A', '#918A59', '#6E676C', '#6E4752', '#6B4A2F', '#998476', '#8A968D', '#968D8A', '#968D96', '#CC855C', '#967860', '#929488', '#949278', '#A0A3BD', '#BD93A1', '#65666B', '#6B5745', '#6B6664', '#695C52', '#56695E', '#69545C', '#565A69', '#696043', '#63635C', '#636150', '#333131', '#332820', '#302D30', '#302D1F', '#2D302F', '#CFB6A3', '#362F2A']);
-
-  var chord = d3.layout.chord()
-          .padding(0.02)
-          .sortGroups(d3.descending)
-          .sortSubgroups(d3.ascending);
-
-  var matrix = chordMatrix()
-          .layout(chord)
-          .filter(function (item, r, c) {
-            return (item.firstterm === r.name && item.secondterm === c.name) ||
-                    (item.firstterm === c.name && item.secondterm === r.name);
-          })
-          .reduce(function (items, r, c) {
-            var value;
-            if (!items[0]) {
-              value = 0;
-            } else {
-              value = items.reduce(function (m, n) {
-                if (r === c) {
-                  return m + (n.frequency + n.frequency);
-                } else {
-                  return m + (n.firstterm === r.name ? n.frequency : n.frequency);
-                }
-              }, 0);
-            }
-            return {value: value, data: items};
-          });
-
-  innerRadius = (dims[1] / 2) - 100;
-
-  arc = d3.svg.arc()
-          .innerRadius(innerRadius)
-          .outerRadius(innerRadius + 20);
-
-  chordpath = d3.svg.chord()
-          .radius(innerRadius);
-
-  chordsvg = d3.select("#relationshipChart").append("svg")
-          .attr("class", "chart")
-          .attr("width", dims[0])
-          .attr("height", dims[1])
-          .attr("preserveAspectRatio", "xMinYMin")
-          .attr("viewBox", "0 0 " + size[0] + " " + size[1]);
-  /* Initialize tooltip */
-  var chordlinkTip = d3.tip()
-          .attr('class', 'd3-tip')
-          .offset([-10, 0])
-          .html(function (d) {
-            return "<strong>" + d.sname + " -" + d.tname + " :" + d.tvalue + "</strong>";
-          });
-  chordsvg.call(chordlinkTip);
-  container = chordsvg.append("g")
-  //.attr("class", "container")
-          .attr("transform", "translate(" + dims[0] / 2 + "," + dims[1] / 2 + ")")
-
-
-  var messages = chordsvg.append("text")
-          .attr("class", "messages")
-          .attr("transform", "translate(10, 10)")
-          .text("Updating...");
-
-  drawChords = function (data) {
-
-    messages.attr("opacity", 1);
-    messages.transition().duration(1000).attr("opacity", 0);
-
-    matrix.data(data)
-            .resetKeys()
-            .addKeys(['firstterm', 'secondterm'])
-            .update()
-
-    var groups = container.selectAll("g.group")
-            .data(matrix.groups(), function (d) {
-              return d._id;
-            });
-
-    var gEnter = groups.enter()
-            .append("g")
-            .attr("class", "group");
-
-    gEnter.append("path")
-            .style("pointer-events", "none")
-            .style("fill", function (d) {
-              return catcolors[d._id];
-            })
-            .attr("d", arc);
-
-    gEnter.append("text")
-            .attr("dy", ".35em")
-            .on("click", groupClick)
-            .on("mouseover", dimChords)
-            .on("mouseout", resetChords)
-            .text(function (d) {
-              return d._id;
-            });
-
-    groups.select("path")
-            .transition().duration(2000)
-            .attrTween("d", matrix.groupTween(arc));
-
-    groups.select("text")
-            .transition()
-            .duration(2000)
-            .attr("transform", function (d) {
-              d.angle = (d.startAngle + d.endAngle) / 2;
-              var r = "rotate(" + (d.angle * 180 / Math.PI - 90) + ")";
-              var t = " translate(" + (innerRadius + 26) + ")";
-              return r + t + (d.angle > Math.PI ? " rotate(180)" : " rotate(0)");
-            })
-            .attr("text-anchor", function (d) {
-              return d.angle > Math.PI ? "end" : "begin";
-            });
-
-    groups.exit().select("text").attr("fill", "orange");
-    groups.exit().select("path").remove();
-
-    groups.exit().transition().duration(1000)
-            .style("opacity", 0).remove();
-
-    var chords = container.selectAll("path.chord")
-            .data(matrix.chords(), function (d) {
-              return d._id;
-            });
-
-    chords.enter().append("path")
-            .attr("class", "chord")
-            .style("fill", function (d) {
-              return catcolors[d.source._id];
-            })
-            .attr("d", chordpath)
-            .on("mouseover", chordMouseover)
-            .on("mouseout", hideTooltip);
-
-    chords.transition().duration(2000)
-            .attrTween("d", matrix.chordTween(chordpath));
-
-    chords.exit().remove()
-
-    function groupClick(d) {
-      d3.event.preventDefault();
-      d3.event.stopPropagation();
-      $scope.addFilter(d._id);
-      resetChords();
-    }
-
-    updateTooltip = function (data) {
-      chordlinkTip.show(data);
-    }
-    function chordMouseover(d) {
-      d3.event.preventDefault();
-      d3.event.stopPropagation();
-      dimChords(d);
-      d3.select("#tooltip").style("opacity", 1);
-      updateTooltip(matrix.read(d));
-    }
-
-    function hideTooltip() {
-      d3.event.preventDefault();
-      d3.event.stopPropagation();
-      chordlinkTip.hide();
-      resetChords();
-    }
-
-    function resetChords() {
-      d3.event.preventDefault();
-      d3.event.stopPropagation();
-      container.selectAll("path.chord").style("opacity", 0.9);
-      timeline.selectAll(".layer")
-              .attr("opacity", function (d1) {
-                return "1";
-              });
-      timeline.selectAll(".layerLine")
-              .attr("opacity", function (d1) {
-                return "1";
-              });
-    }
-
-    function dimChords(d) {
-      d3.event.preventDefault();
-      d3.event.stopPropagation()
-      var grpChords = [];
-      container.selectAll("path.chord").style("opacity", function (p) {
-        if (d.source) { // COMPARE CHORD IDS
-          return (p._id === d._id) ? 1 : 0.1;
-        } else { // COMPARE GROUP IDS
-          if (p.source._id === d._id) {
-            grpChords.push(p.target._id);
-            return 1
-          }
-          else if (p.target._id === d._id) {
-            grpChords.push(p.source._id);
-            return 1
-          }
-          else
-            return 0;
-        }
-
-      });
-      if (!d.source) {
-        container.selectAll(".group").select("path").style("opacity", function (p) {
-          if (grpChords.indexOf(p._id) >= 0)
-            return 1
-          else
-            return 0.1
-
-        });
-      }
-      //
-      timeline.selectAll(".layer")
-              .attr("opacity", function (d1) {
-                if (d._id == d1.term) {
-                  return "1";
-                } else {
-                  return "0.2";
-                }
-              });
-      timeline.selectAll(".layerLine")
-              .attr("opacity", function (d1) {
-                if (d._id == d1.term) {
-                  return "1";
-                } else {
-                  return "0.2";
-                }
-              });
-    }
-  }
-  var master = new Object();
-  update = function () {
-
-    drawChords(data);
-
-  }
+console.log("a");
 </script>
